@@ -1,0 +1,97 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.noisegain.metrologist_assistant'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.noisegain.metrologist_assistant"
+        minSdk 27
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.3.0'
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+}
+
+dependencies {
+
+    // Room
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+    //ksp "androidx.room:room-compiler:$room_version"
+
+    // Koin
+    implementation "io.insert-koin:koin-android:$koin_android_version"
+    // Java Compatibility
+    implementation "io.insert-koin:koin-android-compat:$koin_android_version"
+    // Navigation Graph
+    implementation "io.insert-koin:koin-androidx-navigation:$koin_android_version"
+    // Compose
+    implementation "io.insert-koin:koin-androidx-compose:$koin_android_compose_version"
+
+
+    // Logger
+    implementation "com.jakewharton.timber:timber:$timber_version"
+
+
+    // UI COMPOSE
+
+    implementation "androidx.compose.ui:ui:$compose_version"
+    // Tooling support (Previews, etc.)
+    implementation "androidx.compose.ui:ui-tooling:$compose_version"
+    // Foundation (Border, Background, Box, Image, Scroll, shapes, animations, etc.)
+    implementation "androidx.compose.foundation:foundation:$compose_version"
+    implementation "androidx.compose.ui:ui-util:$compose_version"
+    implementation "androidx.constraintlayout:constraintlayout-compose:$compose_constraint_version"
+    // Material Design
+    implementation "androidx.compose.material:material:$compose_version"
+    // Material design icons
+    implementation "androidx.compose.material:material-icons-core:$compose_version"
+    implementation "androidx.compose.material:material-icons-extended:$compose_version"
+    // Integration with activities
+    implementation "androidx.activity:activity-compose:$compose_activity_version"
+    implementation "androidx.navigation:navigation-compose:$compose_navigation_version"
+    // Integration with ViewModels
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:$compose_viewmodel_version"
+
+    // Test
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_ui_version"
+    debugImplementation "androidx.compose.ui:ui-tooling:$compose_ui_version"
+    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_ui_version"
+}
