@@ -1,3 +1,7 @@
 package com.noisegain.metrologist_assistant.domain.passport
 
-data class Characteristics(val limit: Double)
+import com.noisegain.metrologist_assistant.domain.passport.characteristics.Metrologic
+import com.noisegain.metrologist_assistant.domain.passport.characteristics.Technical
+
+@kotlinx.serialization.Serializable
+data class Characteristics(val technical: Technical, val metrologic: Metrologic)
