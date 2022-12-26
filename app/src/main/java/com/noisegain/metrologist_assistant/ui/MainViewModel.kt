@@ -1,40 +1,51 @@
 package com.noisegain.metrologist_assistant.ui
 
+import android.content.ContentResolver
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.noisegain.metrologist_assistant.domain.Passport
+import com.noisegain.metrologist_assistant.domain.PassportsParser
 import com.noisegain.metrologist_assistant.domain.PassportsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val repository: PassportsRepository
+    private val repository: PassportsRepository,
+    private val passportsParser: PassportsParser
 ) : ViewModel() {
 
-    private val _cur = MutableStateFlow("")
-    val cur = _cur.asStateFlow()
+    private val _passports = MutableStateFlow(emptyList<Passport>())
+    val passports = _passports.asStateFlow()
+
+    private val _curPassport = MutableStateFlow<Passport?>(null)
+    val curPassport = _curPassport.asStateFlow()
+
+    private val filter: MutableStateFlow<(Passport) -> Boolean> = MutableStateFlow { true }
+
+    val filteredPassports = passports.combine(filter) { passports, filter ->
+        passports.filter(filter)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     init {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            repository.addPassport(
-//                Passport(
-//                    "noisegain", "CT", "1313", State.OPERABLE,
-//                    Characteristics(
-//                        Technical(1.0, measureUnit = MeasureUnit.BAR, divCost = 2),
-//                        Metrologic(State.OPERABLE, 0, 1, 2, "AMOGUS", "YURGA_LABS")
-//                    )
-//                )
-//            )
-//        }
-    }
-
-    fun loadSmth() {
         viewModelScope.launch(Dispatchers.IO) {
-            _cur.value = repository.getAll().toString()
+            _passports.update { repository.getAll() }
         }
     }
+
+    fun loadContent(contentResolver: ContentResolver, uri: Uri) {
+        val passports = passportsParser.parse(contentResolver.openInputStream(uri) ?: return)
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.addPassports(passports)
+            _passports.update { repository.getAll() }
+        }
+    }
+
+    fun selectPassport(passport: Passport) = _curPassport.update { passport }
+
+    fun filterPassports(filter: (Passport) -> Boolean) = this.filter.update { filter }
 }

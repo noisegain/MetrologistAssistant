@@ -45,7 +45,8 @@ fun SexyTextField(
         placeholder = { Text(placeholder) },
         shape = Shapes.large,
         modifier = modifier
-            .clip(Shapes.large).border(2.dp, color = MaterialTheme.colors.Background2, MaterialTheme.shapes.large),
+            .clip(Shapes.large)
+            .border(2.dp, color = MaterialTheme.colors.Background2, MaterialTheme.shapes.large),
         colors = TextFieldDefaults.textFieldColors(backgroundColor = MaterialTheme.colors.TFBackground)
     )
 }
@@ -56,6 +57,7 @@ fun SexyButton(
     name: String? = null,
     icon: ImageVector? = null,
     onClick: () -> Unit = {},
+    enabled: Boolean = true,
     content: @Composable (() -> Unit)? = null
 ) {
     Button(
@@ -64,7 +66,7 @@ fun SexyButton(
         modifier = modifier
             .clip(Shapes.large)
             .height(48.dp),
-        colors = ButtonDefaults.buttonColors(backgroundColor = YellowPrimary)
+        colors = ButtonDefaults.buttonColors(backgroundColor = if (enabled) YellowPrimary else MaterialTheme.colors.TFPlaceholder),
         //.background(Color.Yellow)
     ) {
         if (content != null) {

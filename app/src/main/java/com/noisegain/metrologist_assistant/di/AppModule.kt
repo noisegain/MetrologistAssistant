@@ -2,9 +2,9 @@ package com.noisegain.metrologist_assistant.di
 
 import android.content.Context
 import androidx.room.Room
-import com.noisegain.metrologist_assistant.data.AppDatabase
-import com.noisegain.metrologist_assistant.data.PassportsRepositoryImpl
-import com.noisegain.metrologist_assistant.data.PassportsDAO
+import com.noisegain.metrologist_assistant.data.*
+import com.noisegain.metrologist_assistant.domain.Converter
+import com.noisegain.metrologist_assistant.domain.PassportsParser
 import com.noisegain.metrologist_assistant.domain.PassportsRepository
 import dagger.Binds
 import dagger.Module
@@ -12,6 +12,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import java.time.Instant
 
 /*val appModule = module {
     log("HELLO")
@@ -38,6 +39,12 @@ import dagger.hilt.components.SingletonComponent
 interface AppModule {
     @Binds
     fun bindMainRepository(mainRepositoryImpl: PassportsRepositoryImpl): PassportsRepository
+
+    @Binds
+    fun bindPassportsParser(passportsParserImpl: PassportsParserImpl): PassportsParser
+
+    @Binds
+    fun bindInstantConverter(instantConverter: InstantConverter): Converter<Instant>
 
     companion object {
         @Provides

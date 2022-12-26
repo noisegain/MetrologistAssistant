@@ -6,5 +6,16 @@ enum class State {
     PRR,
     REPAIR,
     CONSERVATION,
-    DISCARDED
+    DISCARDED;
+
+    override fun toString(): String {
+        return when (this) {
+            OPERABLE -> "В эксплуатации"
+            VALIDATION -> "На поверке"
+            PRR -> "На ПРР"
+            REPAIR -> "В ремонте"
+            CONSERVATION -> "На консервации"
+            DISCARDED -> "Списан"
+        }
+    }
 }
