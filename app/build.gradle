@@ -44,6 +44,7 @@ android {
     }
     packagingOptions {
         resources {
+            exclude '/META-INF/DEPENDENCIES'
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
@@ -70,6 +71,9 @@ dependencies {
 
     // Logger
     implementation "com.jakewharton.timber:timber:$timber_version"
+
+    // Excel
+    implementation "io.github.evanrupert:excelkt:$excelkt_version"
 
 
     // UI COMPOSE

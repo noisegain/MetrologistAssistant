@@ -12,34 +12,54 @@ import com.noisegain.metrologist_assistant.domain.Passport
 import com.noisegain.metrologist_assistant.ui.theme.SexyButton
 
 
-/*
-@params: passports - список паспортов
-@params: onPassportClick - функция, которая вызывается при нажатии на паспорт
- */
 @Composable
-fun ShowPassportScreen(passportState: State<Passport?>) {
+fun ShowPassportScreen(
+    passportState: State<Passport?>,
+    onLoadPhotoClick: (Passport) -> Unit,
+    onLoadCertificateClick: (Passport) -> Unit,
+    onEditClick: (Passport) -> Unit,
+) {
     val passport = passportState.value ?: return
     Column(
         Modifier
             .padding(8.dp)
-            .fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
+            .fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween
+    ) {
         Column {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = passport.name, style = MaterialTheme.typography.h2)
-                Text(text = passport.division, style = MaterialTheme.typography.h2)
+                Text(text = passport.name, style = MaterialTheme.typography.h5)
+                Text(text = passport.division, style = MaterialTheme.typography.h5)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = "МВЗ: ${passport.mvz}", style = MaterialTheme.typography.h3)
-                Text(text = passport.type, style = MaterialTheme.typography.h3)
+                Text(text = "МВЗ: ${passport.mvz}", style = MaterialTheme.typography.h6)
+                Text(text = passport.type, style = MaterialTheme.typography.h6)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = "Без НДС: ${passport.costRaw}", style = MaterialTheme.typography.h3)
-                Text(text = "С НДС: ${passport.costFull}", style = MaterialTheme.typography.h3)
+                Text(text = "Без НДС: ${passport.costRaw}", style = MaterialTheme.typography.h6)
+                Text(text = "С НДС: ${passport.costFull}", style = MaterialTheme.typography.h6)
             }
         }
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            SexyButton(name = "Фото", modifier = Modifier.fillMaxWidth(0.8f)) //passport.photo != null)
-            SexyButton(name = "Свидетельство", modifier = Modifier.fillMaxWidth(0.8f), enabled = passport.certificate != null)
+        Column(
+            Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row {
+                SexyButton(
+                    name = "Фото",
+                    modifier = Modifier.fillMaxWidth(0.75f),
+                    enabled = passport.photoUri != null,
+                    onClick = { onLoadPhotoClick(passport) }
+                )
+            }
+            Row {
+                SexyButton(
+                    name = "Свидетельство",
+                    modifier = Modifier.fillMaxWidth(0.75f),
+                    enabled = passport.certificateUri != null,
+                    onClick = { onLoadCertificateClick(passport) }
+                )
+            }
         }
     }
 }

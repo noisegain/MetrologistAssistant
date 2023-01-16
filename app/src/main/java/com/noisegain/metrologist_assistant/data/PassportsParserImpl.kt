@@ -11,6 +11,9 @@ import com.opencsv.CSVReaderBuilder
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.*
 import javax.inject.Inject
 
@@ -31,7 +34,18 @@ class PassportsParserImpl @Inject constructor() : PassportsParser {
             // 11 Количество СИ (шт.), 12 Крастность (количество каналов, количество шт. в наборе),
             // 13 Дата поверки, 14 Сумма без НДС, руб., 15 Всего с НДС, руб.]
             log(lines.joinToString("\n") { it.joinToString("|||") })
-            return lines.map {
+            fun excelDouble(value: String) = value.replace(" ", "").replace(',', '.').toDoubleOrNull()
+            return lines.filter { it.any(String::isNotBlank) }.map {
+                val last = SimpleDateFormat(
+                    "dd.MM.yyyy",
+                    Locale.getDefault()
+                ).parse(it[13])
+                val last2 = LocalDate.parse(it[13], DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.getDefault()))
+                log("last: $last ||| last2: $last2")
+                val period = it[9].toInt()
+                val nextDate = last2.plusDays(-1).plusMonths(period.toLong())
+                val next = it[10].toIntOrNull() ?: nextDate.monthValue
+//                val nextDate = nextRaw.withMonth(next)
                 Passport(
                     division = it[0],
                     mvz = it[1],
@@ -39,24 +53,21 @@ class PassportsParserImpl @Inject constructor() : PassportsParser {
                     name = it[3],
                     id = it[5],
                     characteristics = Characteristics(
-                        Technical(info = listOf(it[6])),
+                        Technical(limit = it[7], accuracy = it[6], count = it[12].toInt()),
                         Metrologic(
-                            last = SimpleDateFormat(
-                                "dd.MM.yyyy",
-                                Locale.getDefault()
-                            ).parse(it[13])?.time ?: 0L,
-                            next = it[10].toLongOrNull(),
-                            period = it[9].toIntOrNull(),
+                            last = last2.toEpochDay(),
+                            next = next,
+                            nextDate = nextDate.toEpochDay(),
+                            period = period,
                             type = it[2],
                             lab = it[8]
                         )
                     ),
                     count = it[11].toIntOrNull(),
-                    costRaw = it[14].replace(" ", "").replace(',', '.').toDoubleOrNull(),
-                    costFull = it[15].replace(" ", "").replace(',', '.').toDoubleOrNull()
+                    costRaw = excelDouble(it[14]),
+                    costFull = excelDouble(it[15]),
                 )
             }
         }
-        return emptyList()
     }
 }

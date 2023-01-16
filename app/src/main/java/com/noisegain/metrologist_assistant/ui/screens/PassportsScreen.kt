@@ -11,6 +11,8 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.OpenInBrowser
+import androidx.compose.material.icons.rounded.Print
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
@@ -28,9 +30,14 @@ fun PassportsScreen(
     passports: State<List<Passport>>,
     onPassportClick: (Passport) -> Unit,
     onSortClick: ((Passport) -> Boolean) -> Unit,
+    onExportClick: (String) -> Unit,
+    onShowExportedClick: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize(), Arrangement.SpaceBetween) {
-        LazyColumn(Modifier.fillMaxHeight(0.9f).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        LazyColumn(
+            Modifier
+                .fillMaxHeight(0.9f)
+                .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             items(passports.value) {
                 PassportCard(it, onPassportClick)
             }
@@ -52,6 +59,8 @@ fun PassportsScreen(
                     text = "Всего: ${passports.value.size}",
                     style = MaterialTheme.typography.body1
                 )
+                CircleButton(onClick = { onExportClick("test") }, icon = Icons.Rounded.Print)
+                CircleButton(onClick = onShowExportedClick, icon = Icons.Rounded.OpenInBrowser)
                 CircleButton(
                     onClick = { onSortClick(Filters.ByName("метр").filter) },
                     icon = Icons.Rounded.Menu

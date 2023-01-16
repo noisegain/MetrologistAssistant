@@ -6,6 +6,7 @@ import com.noisegain.metrologist_assistant.data.*
 import com.noisegain.metrologist_assistant.domain.Converter
 import com.noisegain.metrologist_assistant.domain.PassportsParser
 import com.noisegain.metrologist_assistant.domain.PassportsRepository
+import com.noisegain.metrologist_assistant.domain.ReportWriter
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -44,7 +45,7 @@ interface AppModule {
     fun bindPassportsParser(passportsParserImpl: PassportsParserImpl): PassportsParser
 
     @Binds
-    fun bindInstantConverter(instantConverter: InstantConverter): Converter<Instant>
+    fun bindReportWriter(reportWriterImpl: ReportWriterImpl): ReportWriter
 
     companion object {
         @Provides
