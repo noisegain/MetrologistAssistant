@@ -1,19 +1,19 @@
 package com.noisegain.metrologist_assistant.data
 
 import com.noisegain.metrologist_assistant.core.log
-import com.noisegain.metrologist_assistant.domain.Passport
+import com.noisegain.metrologist_assistant.domain.entity.Passport
 import com.noisegain.metrologist_assistant.domain.PassportsParser
 import com.noisegain.metrologist_assistant.domain.passport.Characteristics
+import com.noisegain.metrologist_assistant.domain.passport.State
 import com.noisegain.metrologist_assistant.domain.passport.characteristics.Metrologic
 import com.noisegain.metrologist_assistant.domain.passport.characteristics.Technical
 import com.opencsv.CSVParserBuilder
 import com.opencsv.CSVReaderBuilder
 import java.io.InputStream
 import java.nio.charset.Charset
-import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
+import java.time.format.DateTimeParseException
 import java.util.*
 import javax.inject.Inject
 
@@ -36,15 +36,14 @@ class PassportsParserImpl @Inject constructor() : PassportsParser {
             log(lines.joinToString("\n") { it.joinToString("|||") })
             fun excelDouble(value: String) = value.replace(" ", "").replace(',', '.').toDoubleOrNull()
             return lines.filter { it.any(String::isNotBlank) }.map {
-                val last = SimpleDateFormat(
-                    "dd.MM.yyyy",
-                    Locale.getDefault()
-                ).parse(it[13])
-                val last2 = LocalDate.parse(it[13], DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.getDefault()))
-                log("last: $last ||| last2: $last2")
-                val period = it[9].toInt()
-                val nextDate = last2.plusDays(-1).plusMonths(period.toLong())
-                val next = it[10].toIntOrNull() ?: nextDate.monthValue
+                val last2 = try {
+                    LocalDate.parse(it[13], DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.getDefault()))
+                } catch (_: DateTimeParseException) {
+                    null
+                }
+                val period = it[9].toIntOrNull() ?: 12
+                val nextDate = last2?.plusDays(-1)?.plusMonths(period.toLong())
+                val next = it[10].toIntOrNull() ?: nextDate?.monthValue
 //                val nextDate = nextRaw.withMonth(next)
                 Passport(
                     division = it[0],
@@ -55,12 +54,13 @@ class PassportsParserImpl @Inject constructor() : PassportsParser {
                     characteristics = Characteristics(
                         Technical(limit = it[7], accuracy = it[6], count = it[12].toInt()),
                         Metrologic(
-                            last = last2.toEpochDay(),
-                            next = next,
-                            nextDate = nextDate.toEpochDay(),
+                            last = last2?.toEpochDay() ?: Metrologic.DISCARDED,
+                            next = next ?: 13,
+                            nextDate = nextDate?.toEpochDay() ?: Metrologic.DISCARDED,
                             period = period,
                             type = it[2],
-                            lab = it[8]
+                            lab = it[8],
+                            state = if (last2 != null) State.OPERABLE else State.DISCARDED
                         )
                     ),
                     count = it[11].toIntOrNull(),

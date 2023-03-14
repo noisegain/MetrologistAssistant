@@ -1,20 +1,19 @@
 package com.noisegain.metrologist_assistant.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.noisegain.metrologist_assistant.domain.Passport
 import com.noisegain.metrologist_assistant.ui.theme.SexyButton
+import com.noisegain.metrologist_assistant.ui.utils.Filter
 import com.noisegain.metrologist_assistant.ui.utils.Filters
 
 
 @Composable
-fun MainScreen(onClick: ((Passport) -> Boolean) -> Unit) {
+fun MainScreen(onFilterClick: (Filter) -> Unit, onSettingsClick: () -> Unit) {
     Column(
         Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
@@ -22,22 +21,26 @@ fun MainScreen(onClick: ((Passport) -> Boolean) -> Unit) {
     ) {
         val mod = Modifier.fillMaxWidth(0.7f)
         SexyButton(mod, name = "Непроверенные", onClick = {
-            onClick(Filters.UnVerified())
+            onFilterClick(Filters.UnVerified)
         })
         SexyButton(mod, name = "Проверенные", onClick = {
-            onClick(Filters.Verified())
+            onFilterClick(Filters.Verified)
         })
         SexyButton(mod, name = "В ремонте", onClick = {
-            onClick(Filters.InRepair())
+            onFilterClick(Filters.InRepair)
         })
         SexyButton(mod, name = "На консервации", onClick = {
-            onClick(Filters.InConservation())
+            onFilterClick(Filters.InConservation)
         })
         SexyButton(mod, name = "Списанные", onClick = {
-            onClick(Filters.WrittenOff())
+            onFilterClick(Filters.WrittenOff)
         })
         SexyButton(mod, name = "Все", onClick = {
-            onClick(Filters.All())
+            onFilterClick(Filters.All)
         })
+        Spacer(modifier = Modifier.height(16.dp))
+        SexyButton(mod, name = "Настройки", onClick = {
+            onSettingsClick()
+        }, icon = Icons.Rounded.Settings)
     }
 }

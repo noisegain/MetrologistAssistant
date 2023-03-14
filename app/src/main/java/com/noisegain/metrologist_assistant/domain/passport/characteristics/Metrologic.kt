@@ -2,6 +2,7 @@ package com.noisegain.metrologist_assistant.domain.passport.characteristics
 
 import com.noisegain.metrologist_assistant.domain.passport.State
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @kotlinx.serialization.Serializable
 data class Metrologic(
@@ -13,8 +14,14 @@ data class Metrologic(
     val type: String,
     val lab: String
 ) {
-    private fun daysFromEpochToString(days: Long) = LocalDate.ofEpochDay(days).toString()
+    private fun daysFromEpochToString(days: Long) =
+        if (days == DISCARDED) "Списан" else LocalDate.ofEpochDay(days).format(DateTimeFormatter.ofPattern("dd.MM.yy"))
 
-    val lastAsString = daysFromEpochToString(last)
-    val nextDateAsString = daysFromEpochToString(nextDate)
+    val nextDateAsDate: LocalDate
+        get() = LocalDate.ofEpochDay(nextDate)
+    val lastAsString: String = daysFromEpochToString(last)
+    val nextDateAsString: String = daysFromEpochToString(nextDate)
+    companion object {
+        const val DISCARDED = -1L
+    }
 }

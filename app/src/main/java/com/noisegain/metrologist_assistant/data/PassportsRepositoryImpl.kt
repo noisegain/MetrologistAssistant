@@ -1,6 +1,6 @@
 package com.noisegain.metrologist_assistant.data
 
-import com.noisegain.metrologist_assistant.domain.Passport
+import com.noisegain.metrologist_assistant.domain.entity.Passport
 import com.noisegain.metrologist_assistant.domain.PassportsRepository
 import javax.inject.Inject
 
@@ -21,4 +21,8 @@ class PassportsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAll(): List<Passport> = passportsDAO.getAll()
+
+    override suspend fun clear() {
+        passportsDAO.clear()
+    }
 }

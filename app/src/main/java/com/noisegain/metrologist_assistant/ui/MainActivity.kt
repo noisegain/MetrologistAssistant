@@ -3,25 +3,22 @@ package com.noisegain.metrologist_assistant.ui
 import android.content.Intent
 import android.os.Bundle
 import android.webkit.MimeTypeMap
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.UploadFile
+import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -29,13 +26,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.noisegain.metrologist_assistant.core.log
 import com.noisegain.metrologist_assistant.core.uuid
-import com.noisegain.metrologist_assistant.domain.Passport
-import com.noisegain.metrologist_assistant.ui.screens.EditPassportScreen
-import com.noisegain.metrologist_assistant.ui.screens.MainScreen
-import com.noisegain.metrologist_assistant.ui.screens.PassportsScreen
-import com.noisegain.metrologist_assistant.ui.screens.ShowPassportScreen
+import com.noisegain.metrologist_assistant.domain.entity.Exported
+import com.noisegain.metrologist_assistant.domain.entity.Passport
+import com.noisegain.metrologist_assistant.domain.entity.Report
+import com.noisegain.metrologist_assistant.ui.screens.*
 import com.noisegain.metrologist_assistant.ui.theme.CircleButton
 import com.noisegain.metrologist_assistant.ui.theme.MetrologistAssistantTheme
+import com.noisegain.metrologist_assistant.ui.utils.Filter
+import com.noisegain.metrologist_assistant.ui.utils.Filters
 import com.noisegain.metrologist_assistant.ui.utils.Screen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -49,7 +47,7 @@ import java.io.File
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<MainViewModel>()
 
-    private val importPassports = registerForActivityResult(ActivityResultContracts.GetContent()) {
+    val importPassports = registerForActivityResult(ActivityResultContracts.GetContent()) {
         log(it)
         if (it != null) viewModel.importPassports(contentResolver, it)
     }
@@ -77,7 +75,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MetrologistAssistantTheme {
-                //getFile.launch("text/*")
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
@@ -85,14 +82,8 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     val navigator = remember { Navigator(navController, viewModel) }
                     Box(Modifier.fillMaxSize()) {
-                        CircleButton(
-                            modifier = Modifier
-                                .align(alignment = Alignment.TopEnd)
-                                .padding(16.dp)
-                                .zIndex(1f),
-                            onClick = { importPassports.launch("text/*") },
-                            icon = Icons.Rounded.UploadFile
-                        )
+                        CircleButton(onClick = { navigator.navigateTo(Screen.ExportScreen) },
+                            icon = Icons.Rounded.Explore)
                         NavigationComponent(navigator = navigator)
                     }
                 }
@@ -108,11 +99,16 @@ class MainActivity : ComponentActivity() {
         private val _sharedFlow = MutableSharedFlow<Screen>(extraBufferCapacity = 1)
         val sharedFlow = _sharedFlow.asSharedFlow()
 
-        private fun navigateTo(navTarget: Screen) {
+        private var curFilter: Filter = Filters.All
+
+        fun navigateTo(navTarget: Screen) {
             _sharedFlow.tryEmit(navTarget)
         }
 
-        fun navigateBack() {
+        private fun acceptMainFilter(filter: Filter) {
+            curFilter = filter
+        }
+        private fun navigateBack() {
             navController.popBackStack()
         }
 
@@ -122,15 +118,34 @@ class MainActivity : ComponentActivity() {
             navigateTo(Screen.ShowPassport)
         }
 
-        fun onFilterClick(filter: (Passport) -> Boolean) {
-            viewModel.filterPassports(filter)
+        fun onFilterButtonClick() {
+            navigateTo(Screen.FilterScreen)
         }
 
-        fun onFilterFromMainClick(filter: (Passport) -> Boolean) {
+        private fun onFilterClick(filter: Filter) {
+            viewModel.filterPassports(Filter.combine(curFilter, filter).filter)
+        }
+
+        fun onFilterFromMainClick(filter: Filter) {
+            acceptMainFilter(filter)
             onFilterClick(filter)
             navigateTo(Screen.Passports)
         }
 
+        fun onFilterFromPassportsClick(filter: Filter) {
+            onFilterClick(filter)
+            navigateBack()
+        }
+
+        fun onFilterFromSelectClick(filter: Filter) {
+            onFilterClick(filter)
+            navigateTo(Screen.SelectPassports)
+        }
+
+        fun onSummaryExportClick() {
+            viewModel.selectedAction()
+            navigateTo(Screen.ExportScreen)
+        }
         fun onEditPassportClick(passport: Passport) {
             viewModel.selectPassport(passport)
             navigateTo(Screen.EditPassport)
@@ -174,17 +189,42 @@ class MainActivity : ComponentActivity() {
             navigateTo(Screen.ShowPassport)
         }
 
-        fun onExportClick(filename: String) {
-            val uri = FileProvider.getUriForFile(
-                this@MainActivity,
-                "com.noisegain.metrologist_assistant.fileprovider",
-                File(filesDir, "$filename.xlsx")
-            )
-            viewModel.exportPassports(contentResolver.openOutputStream(uri)!!)
+        fun onSelectReportTypeClick(type: Report.Type) {
+            viewModel.setReportType(type)
+        }
+        fun onExportActExportClick(filename: String) {
+            viewModel.selectExportAct()
+            onExportClick(filename)
         }
 
+        fun onExportClick(filename: String) {
+            Toast.makeText(this@MainActivity, "Exporting...", Toast.LENGTH_SHORT).show()
+            viewModel.onExportClick(filename)
+            Toast.makeText(this@MainActivity, "Exported successfully", Toast.LENGTH_SHORT).show()
+        }
+
+        fun findReports() = viewModel.exported
+
+        fun onClearPassportsClick() {
+            viewModel.clearPassports()
+        }
+
+        fun onUploadPassportsClick() {
+            importPassports.launch("text/*")
+        }
+        fun viewExport(export: Exported) {
+            viewFileIntent("$REPORTS_DIR/${export.uri}")
+        }
+
+        fun deleteReport(export: Exported) {
+            viewModel.deleteExport(export)
+        }
+
+        fun onSettingsClick() {
+            navigateTo(Screen.Settings)
+        }
         fun onShowExportedClick() {
-            viewFileIntent(filename = "test.xlsx")
+            navigateTo(Screen.Reports)
         }
 
         private fun viewFileIntent(filename: String) {
@@ -192,7 +232,7 @@ class MainActivity : ComponentActivity() {
                 val file = File(filesDir, filename)
                 val uri = FileProvider.getUriForFile(
                     this@MainActivity,
-                    "com.noisegain.metrologist_assistant.fileprovider",
+                    Tags.PROVIDER,
                     file
                 )
                 setDataAndType(
@@ -206,6 +246,8 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
+        const val REPORTS_DIR = "reports"
+
         @Composable
         fun NavigationComponent(
             navigator: Navigator
@@ -224,9 +266,10 @@ class MainActivity : ComponentActivity() {
                     PassportsScreen(
                         navigator.viewModel.filteredPassports.collectAsState(),
                         navigator::onPassportClick,
-                        navigator::onFilterClick,
+                        navigator::onFilterButtonClick,
                         navigator::onExportClick,
                         navigator::onShowExportedClick,
+                        navigator::onSelectReportTypeClick
                     )
                 }
                 composable(Screen.ShowPassport.route) {
@@ -238,7 +281,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
                 composable(Screen.Main.route) {
-                    MainScreen(navigator::onFilterFromMainClick)
+                    MainScreen(navigator::onFilterFromMainClick, navigator::onSettingsClick)
                 }
                 composable(Screen.EditPassport.route) {
                     EditPassportScreen(
@@ -250,8 +293,47 @@ class MainActivity : ComponentActivity() {
                         navigator::onSavePassportClick,
                     )
                 }
+                composable(Screen.Reports.route) {
+                    ExportsScreen(
+                        navigator.findReports().collectAsState(),
+                        navigator::viewExport,
+                        navigator::deleteReport
+                    )
+                }
+                composable(Screen.FilterScreen.route) {
+                    FilterPassportsScreen(
+                        navigator::onFilterFromPassportsClick
+                    )
+                }
+                composable(Screen.Settings.route) {
+                    SettingsScreen(
+                        navigator::onClearPassportsClick,
+                        navigator::onUploadPassportsClick,
+                        navigator::onShowExportedClick
+                    )
+                }
+                composable(Screen.ExportScreen.route) {
+                    SelectedPassportsOnExport(
+                        navigator.viewModel,
+                        navigator::onExportActExportClick,
+                    ) { navigator.navController.navigate(Screen.SelectPassports.route) }
+                }
+                composable(Screen.SelectPassports.route) {
+                    SelectPassportsScreen(
+                        navigator.viewModel.filteredPassportsCheckBox.collectAsState(),
+                        navigator::onSummaryExportClick
+                    ) {
+                        navigator.navigateTo(Screen.FilterForSelect)
+                    }
+                }
+                composable(Screen.FilterForSelect.route) {
+                    FilterPassportsScreen(onFilterPressed = navigator::onFilterFromSelectClick)
+                }
             }
         }
-    }
 
+        object Tags {
+            const val PROVIDER = "com.noisegain.metrologist_assistant.fileprovider"
+        }
+    }
 }

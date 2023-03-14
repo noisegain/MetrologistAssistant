@@ -5,5 +5,11 @@ enum class Screen(val route: String) {
     ShowPassport("passport"),
     AddPassport("add_passport"),
     EditPassport("edit_passport"),
-    Main("main")
+    Main("main"),
+    Settings("settings"),
+    Reports("reports"),
+    FilterScreen("filter_screen"),
+    ExportScreen("export_screen"),
+    SelectPassports("select_passports"),
+    FilterForSelect("filter_for_select")
 }

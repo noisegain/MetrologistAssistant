@@ -8,7 +8,7 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.noisegain.metrologist_assistant.domain.Passport
+import com.noisegain.metrologist_assistant.domain.entity.Passport
 import com.noisegain.metrologist_assistant.ui.theme.SexyButton
 
 

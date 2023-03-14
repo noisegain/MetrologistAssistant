@@ -1,6 +1,6 @@
 package com.noisegain.metrologist_assistant.core
 
-import com.noisegain.metrologist_assistant.domain.Passport
+import com.noisegain.metrologist_assistant.domain.entity.Passport
 import timber.log.Timber
 import java.util.*
 

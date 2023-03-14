@@ -3,17 +3,17 @@ package com.noisegain.metrologist_assistant.di
 import android.content.Context
 import androidx.room.Room
 import com.noisegain.metrologist_assistant.data.*
-import com.noisegain.metrologist_assistant.domain.Converter
+import com.noisegain.metrologist_assistant.domain.ExportedRepository
 import com.noisegain.metrologist_assistant.domain.PassportsParser
 import com.noisegain.metrologist_assistant.domain.PassportsRepository
-import com.noisegain.metrologist_assistant.domain.ReportWriter
+import com.noisegain.metrologist_assistant.domain.writer.ExportActWriter
+import com.noisegain.metrologist_assistant.domain.writer.ReportWriter
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import java.time.Instant
 
 /*val appModule = module {
     log("HELLO")
@@ -42,10 +42,16 @@ interface AppModule {
     fun bindMainRepository(mainRepositoryImpl: PassportsRepositoryImpl): PassportsRepository
 
     @Binds
+    fun bindExportedRepository(exportedRepositoryImpl: ExportedRepositoryImpl): ExportedRepository
+
+    @Binds
     fun bindPassportsParser(passportsParserImpl: PassportsParserImpl): PassportsParser
 
     @Binds
     fun bindReportWriter(reportWriterImpl: ReportWriterImpl): ReportWriter
+
+    @Binds
+    fun bindExportActWriter(exportActWriterImpl: ExportActWriterImpl): ExportActWriter
 
     companion object {
         @Provides
@@ -55,5 +61,8 @@ interface AppModule {
 
         @Provides
         fun providePassportsDAO(database: AppDatabase): PassportsDAO = database.passportsDAO()
+
+        @Provides
+        fun provideExportedDAO(database: AppDatabase): ExportedDAO = database.exportedDAO()
     }
 }

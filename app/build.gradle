@@ -4,6 +4,7 @@ plugins {
     id 'kotlin-kapt'
     id 'dagger.hilt.android.plugin'
     id 'org.jetbrains.kotlin.plugin.serialization'
+    id "dev.shreyaspatil.compose-compiler-report-generator"
 }
 
 android {
@@ -12,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId "com.noisegain.metrologist_assistant"
-        minSdk 29
+        minSdk 30
         targetSdk 33
         versionCode 1
         versionName "1.0"
@@ -25,7 +26,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            signingConfig signingConfigs.debug
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -74,7 +76,6 @@ dependencies {
 
     // Excel
     implementation "io.github.evanrupert:excelkt:$excelkt_version"
-
 
     // UI COMPOSE
 

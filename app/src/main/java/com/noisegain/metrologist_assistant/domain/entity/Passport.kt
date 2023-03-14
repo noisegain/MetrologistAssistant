@@ -1,5 +1,6 @@
-package com.noisegain.metrologist_assistant.domain
+package com.noisegain.metrologist_assistant.domain.entity
 
+import androidx.compose.runtime.Immutable
 import androidx.room.Entity
 import com.noisegain.metrologist_assistant.domain.passport.Characteristics
 import com.noisegain.metrologist_assistant.domain.passport.Chronics
@@ -7,6 +8,7 @@ import com.noisegain.metrologist_assistant.domain.passport.State
 import com.noisegain.metrologist_assistant.domain.passport.chronics.Event
 
 @Entity(tableName = "passports", primaryKeys = ["name", "mvz", "type", "id"])
+@Immutable
 data class Passport(
     val name: String, //
     val division: String, //
