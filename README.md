@@ -1,0 +1,3 @@
+# MetrologistAssistant
+
+[Демо](https://niuitmo-my.sharepoint.com/:v:/g/personal/ponomarenko_niuitmo_ru/ETAoeXGd6C9Pgus5M8fxx0UBNTIbFuyfsmmRwxqW0UJRYw?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0RpcmVjdCJ9fQ&e=d6F01h)
