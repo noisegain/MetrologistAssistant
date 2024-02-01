@@ -52,6 +52,10 @@ sealed class Filters(override val filter: (Passport) -> Boolean) : Filter {
         it.status == State.DISCARDED
     })
 
+    object InValidation : Filters({
+        it.status == State.VALIDATION
+    })
+
     object All : Filters({
         true
     })

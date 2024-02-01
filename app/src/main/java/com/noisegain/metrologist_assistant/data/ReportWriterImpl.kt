@@ -2,19 +2,24 @@ package com.noisegain.metrologist_assistant.data
 
 import com.noisegain.metrologist_assistant.domain.entity.Passport
 import com.noisegain.metrologist_assistant.domain.entity.Report
+import com.noisegain.metrologist_assistant.domain.writer.ExcelWriter
 import com.noisegain.metrologist_assistant.domain.writer.ReportWriter
 import io.github.evanrupert.excelkt.workbook
-import org.apache.poi.ss.usermodel.BorderStyle
+import com.noisegain.metrologist_assistant.domain.writer.ExcelWriter.Styles.*
+import org.apache.poi.xssf.usermodel.XSSFCellStyle
+import java.util.*
 import javax.inject.Inject
 
 
-class ReportWriterImpl @Inject constructor() : ReportWriter {
+class ReportWriterImpl @Inject constructor(
+    override var styles: EnumMap<ExcelWriter.Styles, XSSFCellStyle>
+) : ReportWriter {
     override fun write(data: Report) {
         workbook {
-            val (headerStyle, borderStyle, style) = init()
+            init()
             sheet {
                 xssfSheet.createFreezePane(0, 1)
-                row(headerStyle) {
+                row(styles[HEADER]) {
                     cell("№ п/п")
                     cell("Участок")
                     cell("МВЗ")
@@ -40,7 +45,7 @@ class ReportWriterImpl @Inject constructor() : ReportWriter {
                 xssfSheet.setColumnWidth(5, 10 * 256)
                 var index = 0
                 fun borderRow(list: List<Passport>) {
-                    row(borderStyle) {
+                    row(styles[BORDER]) {
                         cell("Кол-во позиций:")
                         cell(list.size)
                         cell("")
@@ -69,7 +74,7 @@ class ReportWriterImpl @Inject constructor() : ReportWriter {
                 passports.forEach {
                     if (data.type == Report.Type.ByMonth) {
                         row {}
-                        row(borderStyle) {
+                        row(styles[BORDER]) {
                             cell("Месяц:")
                             // get month name from int
                             fun monthName(month: Int): String {
@@ -89,6 +94,7 @@ class ReportWriterImpl @Inject constructor() : ReportWriter {
                                     else -> "Неизвестный месяц"
                                 }
                             }
+
                             val month = it[0].characteristics.metrologic.next
                             cell("$month - ${monthName(month)}")
                             repeat(17) { cell("") }
@@ -101,7 +107,7 @@ class ReportWriterImpl @Inject constructor() : ReportWriter {
                             Passport::name
                         )
                     ).forEach { passport ->
-                        row(style) {
+                        row(styles[STYLE]) {
                             cell(++index)
                             cell(passport.division)
                             cell(passport.mvz)
@@ -118,8 +124,8 @@ class ReportWriterImpl @Inject constructor() : ReportWriter {
                             cell(passport.characteristics.technical.count)
                             cell(passport.characteristics.metrologic.lastAsString)
                             cell(passport.characteristics.metrologic.nextDateAsString)
-                            cell(passport.costRaw ?: "")
-                            cell(passport.costFull ?: "")
+                            cell(passport.costRaw ?: "", styles[MONEY])
+                            cell(passport.costFull ?: "", styles[MONEY])
                             cell(passport.notes)
                         }
                     }

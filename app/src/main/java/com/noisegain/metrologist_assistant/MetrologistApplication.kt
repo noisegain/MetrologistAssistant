@@ -15,8 +15,4 @@ class MetrologistApplication : Application() {
             Timber.plant(Timber.DebugTree())
         }
     }
-
-    fun copy(inputStream: InputStream, outputStream: OutputStream) {
-        inputStream.copyTo(outputStream)
-    }
 }

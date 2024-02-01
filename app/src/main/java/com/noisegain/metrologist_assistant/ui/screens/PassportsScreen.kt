@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -20,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.noisegain.metrologist_assistant.core.log
 import com.noisegain.metrologist_assistant.domain.entity.Passport
 import com.noisegain.metrologist_assistant.domain.entity.Report
 import com.noisegain.metrologist_assistant.ui.theme.Background2
@@ -114,16 +114,11 @@ fun ReportWritePopup(
             fontWeight = FontWeight.Bold,
             fontSize = 21.sp
         )
-        val filename = remember { mutableStateOf("test") }
-        SexyTextField(
-            init = filename.value,
-            onChange = { filename.value = it },
-            placeholder = "Имя файла"
-        )
+        val filename = remember { mutableStateOf("") }
         if (filename.value.isNotEmpty()) {
-            LazyColumn(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+            LazyRow(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(Report.Type.values()) {
                     SexyButton(
@@ -140,13 +135,19 @@ fun ReportWritePopup(
             Text(
                 text = "Введите имя файла",
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .height(48.dp),
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 fontSize = 21.sp,
                 color = MaterialTheme.colors.error
             )
         }
+        SexyTextField(
+            init = filename.value,
+            onChange = { filename.value = it },
+            placeholder = "Имя файла"
+        )
     }
 }
 

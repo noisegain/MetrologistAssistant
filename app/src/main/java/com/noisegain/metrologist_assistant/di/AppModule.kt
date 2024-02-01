@@ -6,6 +6,7 @@ import com.noisegain.metrologist_assistant.data.*
 import com.noisegain.metrologist_assistant.domain.ExportedRepository
 import com.noisegain.metrologist_assistant.domain.PassportsParser
 import com.noisegain.metrologist_assistant.domain.PassportsRepository
+import com.noisegain.metrologist_assistant.domain.writer.ExcelWriter
 import com.noisegain.metrologist_assistant.domain.writer.ExportActWriter
 import com.noisegain.metrologist_assistant.domain.writer.ReportWriter
 import dagger.Binds
@@ -14,6 +15,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import java.util.*
 
 /*val appModule = module {
     log("HELLO")
@@ -47,12 +49,6 @@ interface AppModule {
     @Binds
     fun bindPassportsParser(passportsParserImpl: PassportsParserImpl): PassportsParser
 
-    @Binds
-    fun bindReportWriter(reportWriterImpl: ReportWriterImpl): ReportWriter
-
-    @Binds
-    fun bindExportActWriter(exportActWriterImpl: ExportActWriterImpl): ExportActWriter
-
     companion object {
         @Provides
         fun provideAppDatabase(
@@ -64,5 +60,11 @@ interface AppModule {
 
         @Provides
         fun provideExportedDAO(database: AppDatabase): ExportedDAO = database.exportedDAO()
+
+        @Provides
+        fun bindReportWriter(): ReportWriter = ReportWriterImpl(EnumMap(ExcelWriter.Styles::class.java))
+
+        @Provides
+        fun bindExportActWriter(): ExportActWriter = ExportActWriterImpl(EnumMap(ExcelWriter.Styles::class.java))
     }
 }

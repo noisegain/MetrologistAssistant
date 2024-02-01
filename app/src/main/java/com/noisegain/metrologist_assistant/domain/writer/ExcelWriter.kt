@@ -2,12 +2,14 @@ package com.noisegain.metrologist_assistant.domain.writer
 
 import io.github.evanrupert.excelkt.Workbook
 import org.apache.poi.ss.usermodel.BorderStyle
-import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.xssf.usermodel.XSSFCellStyle
+import java.util.*
 
 interface ExcelWriter<T> {
     fun write(data: T)
-    fun Workbook.init(): Styles {
+
+    var styles: EnumMap<Styles, XSSFCellStyle>
+    fun Workbook.init() {
         val bold = createFont {
             bold = true
         }
@@ -28,8 +30,17 @@ interface ExcelWriter<T> {
         val style = createCellStyle {
             wrapText = true
         }
-        return Styles(headerStyle, borderStyle, style)
+        val money = createCellStyle {
+            dataFormat = xssfWorkbook.createDataFormat().getFormat("#0.00")
+        }
+        styles = EnumMap<Styles, XSSFCellStyle>(Styles::class.java).apply {
+            set(Styles.HEADER, headerStyle)
+            set(Styles.BORDER, borderStyle)
+            set(Styles.STYLE, style)
+            set(Styles.MONEY, money)
+        }
     }
-
-    data class Styles(val headerStyle: XSSFCellStyle, val borderStyle: XSSFCellStyle, val style: XSSFCellStyle)
+    enum class Styles {
+        HEADER, BORDER, STYLE, MONEY
+    }
 }

@@ -32,8 +32,8 @@ class PassportsParserImpl @Inject constructor() : PassportsParser {
             // 6 Метрологические характеристики, 7 Метрологические Предел (диапазон) измерений, 8 Место проведения поверки,
             // 9 Периодичность проведения  поверки (в месяцах), 10 Срок проведения поверки(указывать в календарном порядке с 1 по 12 м-ц),
             // 11 Количество СИ (шт.), 12 Крастность (количество каналов, количество шт. в наборе),
-            // 13 Дата поверки, 14 Сумма без НДС, руб., 15 Всего с НДС, руб.]
-            log(lines.joinToString("\n") { it.joinToString("|||") })
+            // 13 Дата поверки, 14 Сумма без НДС, руб., 15 статус, 16 примечания]
+//            log(lines.joinToString("\n") { it.joinToString("|||") })
             fun excelDouble(value: String) = value.replace(" ", "").replace(',', '.').toDoubleOrNull()
             return lines.filter { it.any(String::isNotBlank) }.map {
                 val last2 = try {
@@ -45,6 +45,7 @@ class PassportsParserImpl @Inject constructor() : PassportsParser {
                 val nextDate = last2?.plusDays(-1)?.plusMonths(period.toLong())
                 val next = it[10].toIntOrNull() ?: nextDate?.monthValue
 //                val nextDate = nextRaw.withMonth(next)
+                fun calcTaxes(c: Double?) = c?.times(1.2)
                 Passport(
                     division = it[0],
                     mvz = it[1],
@@ -55,17 +56,20 @@ class PassportsParserImpl @Inject constructor() : PassportsParser {
                         Technical(limit = it[7], accuracy = it[6], count = it[12].toInt()),
                         Metrologic(
                             last = last2?.toEpochDay() ?: Metrologic.DISCARDED,
-                            next = next ?: 13,
+                            next = next ?: Metrologic.NEXT_UNKNOWN,
                             nextDate = nextDate?.toEpochDay() ?: Metrologic.DISCARDED,
                             period = period,
                             type = it[2],
                             lab = it[8],
-                            state = if (last2 != null) State.OPERABLE else State.DISCARDED
                         )
                     ),
                     count = it[11].toIntOrNull(),
                     costRaw = excelDouble(it[14]),
-                    costFull = excelDouble(it[15]),
+                    costFull = calcTaxes(excelDouble(it[14])),
+                    notes = it[16],
+                    status = if (it[15].isNotBlank()) {
+                        if ("В Поверке" in it[15]) State.VALIDATION else State.OPERABLE
+                    } else State.OPERABLE
                 )
             }
         }

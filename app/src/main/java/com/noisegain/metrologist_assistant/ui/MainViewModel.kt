@@ -2,10 +2,15 @@ package com.noisegain.metrologist_assistant.ui
 
 import android.app.Application
 import android.content.ContentResolver
+import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateListOf
 import androidx.core.content.FileProvider
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringSetPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.noisegain.metrologist_assistant.core.log
@@ -17,6 +22,7 @@ import com.noisegain.metrologist_assistant.domain.entity.Report
 import com.noisegain.metrologist_assistant.domain.writer.ExcelType
 import com.noisegain.metrologist_assistant.domain.writer.ExportActWriter
 import com.noisegain.metrologist_assistant.domain.writer.ReportWriter
+import com.noisegain.metrologist_assistant.ui.utils.Filters
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -42,6 +48,10 @@ class MainViewModel @Inject constructor(
     val curPassport = _curPassport.asStateFlow()
 
     private val filter: MutableStateFlow<(Passport) -> Boolean> = MutableStateFlow { true }
+
+    private fun resetFilter() {
+        filter.update { Filters.All() }
+    }
 
     private val loadType = MutableStateFlow(LoadType.PHOTO)
 
@@ -83,8 +93,8 @@ class MainViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     data class PassportWithCheckBox(
-        val passport: Passport, var isChecked:
-        MutableStateFlow<Boolean> = MutableStateFlow(true)
+        val passport: Passport,
+        var isChecked: MutableStateFlow<Boolean> = MutableStateFlow(true)
     )
 
     fun selectedAction() {
@@ -92,11 +102,21 @@ class MainViewModel @Inject constructor(
             filteredPassportsCheckBox.value.filter { it.isChecked.value }.map { it.passport }
                 .filter { it !in passportsOnExport }
         passportsOnExport.addAll(selected)
-        Toast.makeText(context, "Выбрано ${selected.size} новых паспортов", Toast.LENGTH_SHORT)
+        Toast.makeText(context, "Выбрано ${selected.size} новых приборов", Toast.LENGTH_SHORT)
             .show()
+        resetFilter()
     }
 
     val passportsOnExport = mutableStateListOf<Passport>()
+
+    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "data")
+
+    val dataStore = context.dataStore
+
+    private val exportActNamesKey = stringSetPreferencesKey("exportActNames")
+
+    val exportActNamesSuggestions = dataStore.data.map { it[exportActNamesKey] }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
     init {
         viewModelScope.launch(Dispatchers.IO) {

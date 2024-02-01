@@ -38,6 +38,7 @@ fun ShowPassportScreen(
                 Text(text = "Без НДС: ${passport.costRaw}", style = MaterialTheme.typography.h6)
                 Text(text = "С НДС: ${passport.costFull}", style = MaterialTheme.typography.h6)
             }
+            Text("Примечание: ${passport.notes}", style = MaterialTheme.typography.h6)
         }
         Column(
             Modifier.fillMaxWidth(),

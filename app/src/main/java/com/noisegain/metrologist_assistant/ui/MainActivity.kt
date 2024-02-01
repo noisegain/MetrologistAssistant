@@ -48,26 +48,24 @@ class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<MainViewModel>()
 
     val importPassports = registerForActivityResult(ActivityResultContracts.GetContent()) {
-        log(it)
         if (it != null) viewModel.importPassports(contentResolver, it)
     }
 
     private val loadContent = registerForActivityResult(ActivityResultContracts.GetContent()) {
-        log(it)
         it ?: return@registerForActivityResult
         val passport = viewModel.curPassport.value ?: return@registerForActivityResult
         val filename = passport.uuid + "." + MimeTypeMap.getSingleton()
-            .getExtensionFromMimeType(contentResolver.getType(it))
+                .getExtensionFromMimeType(contentResolver.getType(it))
         val uri = FileProvider.getUriForFile(
-            this,
-            "com.noisegain.metrologist_assistant.fileprovider",
-            File(filesDir, filename)
+                this,
+                Tags.PROVIDER,
+                File(filesDir, filename)
         )
         viewModel.loadContent(
-            contentResolver,
-            it,
-            contentResolver.openOutputStream(uri)!!,
-            filename
+                contentResolver,
+                it,
+                contentResolver.openOutputStream(uri)!!,
+                filename
         )
     }
 
@@ -76,14 +74,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             MetrologistAssistantTheme {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colors.background
                 ) {
                     val navController = rememberNavController()
                     val navigator = remember { Navigator(navController, viewModel) }
                     Box(Modifier.fillMaxSize()) {
-                        CircleButton(onClick = { navigator.navigateTo(Screen.ExportScreen) },
-                            icon = Icons.Rounded.Explore)
+//                        CircleButton(
+//                                onClick = { navigator.navigateTo(Screen.ExportScreen) },
+//                                icon = Icons.Rounded.Explore
+//                        )
                         NavigationComponent(navigator = navigator)
                     }
                 }
@@ -92,8 +92,8 @@ class MainActivity : ComponentActivity() {
     }
 
     inner class Navigator(
-        val navController: NavHostController,
-        val viewModel: MainViewModel
+            val navController: NavHostController,
+            val viewModel: MainViewModel
     ) {
 
         private val _sharedFlow = MutableSharedFlow<Screen>(extraBufferCapacity = 1)
@@ -108,6 +108,7 @@ class MainActivity : ComponentActivity() {
         private fun acceptMainFilter(filter: Filter) {
             curFilter = filter
         }
+
         private fun navigateBack() {
             navController.popBackStack()
         }
@@ -146,6 +147,7 @@ class MainActivity : ComponentActivity() {
             viewModel.selectedAction()
             navigateTo(Screen.ExportScreen)
         }
+
         fun onEditPassportClick(passport: Passport) {
             viewModel.selectPassport(passport)
             navigateTo(Screen.EditPassport)
@@ -169,18 +171,21 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        fun onRemovePhotoClick(passport: Passport) {
-            viewModel.setLoadTypePhoto()
-            val filename = passport.photoUri ?: return
+
+        private fun onRemoveClick(passport: Passport, field: String?) {
+            val filename = field ?: return
             File(filesDir, filename).delete()
             viewModel.removeContent(passport)
         }
 
+        fun onRemovePhotoClick(passport: Passport) {
+            viewModel.setLoadTypePhoto()
+            onRemoveClick(passport, passport.photoUri)
+        }
+
         fun onRemoveCertificateClick(passport: Passport) {
             viewModel.setLoadTypeCertificate()
-            val filename = passport.certificateUri ?: return
-            File(filesDir, filename).delete()
-            viewModel.removeContent(passport)
+            onRemoveClick(passport, passport.certificateUri)
         }
 
         fun onSavePassportClick(passport: Passport) {
@@ -192,6 +197,7 @@ class MainActivity : ComponentActivity() {
         fun onSelectReportTypeClick(type: Report.Type) {
             viewModel.setReportType(type)
         }
+
         fun onExportActExportClick(filename: String) {
             viewModel.selectExportAct()
             onExportClick(filename)
@@ -212,6 +218,7 @@ class MainActivity : ComponentActivity() {
         fun onUploadPassportsClick() {
             importPassports.launch("text/*")
         }
+
         fun viewExport(export: Exported) {
             viewFileIntent("$REPORTS_DIR/${export.uri}")
         }
@@ -223,6 +230,7 @@ class MainActivity : ComponentActivity() {
         fun onSettingsClick() {
             navigateTo(Screen.Settings)
         }
+
         fun onShowExportedClick() {
             navigateTo(Screen.Reports)
         }
@@ -231,13 +239,13 @@ class MainActivity : ComponentActivity() {
             Intent(Intent.ACTION_VIEW).apply {
                 val file = File(filesDir, filename)
                 val uri = FileProvider.getUriForFile(
-                    this@MainActivity,
-                    Tags.PROVIDER,
-                    file
+                        this@MainActivity,
+                        Tags.PROVIDER,
+                        file
                 )
                 setDataAndType(
-                    uri,
-                    MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
+                        uri,
+                        MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
                 )
                 flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
                 startActivity(this)
@@ -250,78 +258,84 @@ class MainActivity : ComponentActivity() {
 
         @Composable
         fun NavigationComponent(
-            navigator: Navigator
+                navigator: Navigator
         ) {
             LaunchedEffect("navigation") {
                 navigator.sharedFlow.onEach {
-                    navigator.navController.navigate(it.route)
+                    navigator.navController.navigate(it.route) {
+                        it.popUpTo?.let(::popUpTo)
+                    }
                 }.launchIn(this)
             }
 
             NavHost(
-                navController = navigator.navController,
-                startDestination = Screen.Main.route
+                    navController = navigator.navController,
+                    startDestination = Screen.Main.route
             ) {
                 composable(Screen.Passports.route) {
                     PassportsScreen(
-                        navigator.viewModel.filteredPassports.collectAsState(),
-                        navigator::onPassportClick,
-                        navigator::onFilterButtonClick,
-                        navigator::onExportClick,
-                        navigator::onShowExportedClick,
-                        navigator::onSelectReportTypeClick
+                            navigator.viewModel.filteredPassports.collectAsState(),
+                            navigator::onPassportClick,
+                            navigator::onFilterButtonClick,
+                            navigator::onExportClick,
+                            navigator::onShowExportedClick,
+                            navigator::onSelectReportTypeClick
                     )
                 }
                 composable(Screen.ShowPassport.route) {
                     ShowPassportScreen(
-                        navigator.viewModel.curPassport.collectAsState(),
-                        navigator::onLoadPhotoClick,
-                        navigator::onLoadCertificateClick,
-                        navigator::onEditPassportClick,
+                            navigator.viewModel.curPassport.collectAsState(),
+                            navigator::onLoadPhotoClick,
+                            navigator::onLoadCertificateClick,
+                            navigator::onEditPassportClick,
                     )
                 }
                 composable(Screen.Main.route) {
-                    MainScreen(navigator::onFilterFromMainClick, navigator::onSettingsClick)
+                    MainScreen(
+                            navigator::onFilterFromMainClick,
+                            { navigator.navigateTo(Screen.ExportScreen) },
+                            navigator::onSettingsClick
+                    )
                 }
                 composable(Screen.EditPassport.route) {
                     EditPassportScreen(
-                        navigator.viewModel.curPassport.collectAsState(),
-                        navigator::onLoadPhotoClick,
-                        navigator::onLoadCertificateClick,
-                        navigator::onRemovePhotoClick,
-                        navigator::onRemoveCertificateClick,
-                        navigator::onSavePassportClick,
+                            navigator.viewModel.curPassport.collectAsState(),
+                            navigator::onLoadPhotoClick,
+                            navigator::onLoadCertificateClick,
+                            navigator::onRemovePhotoClick,
+                            navigator::onRemoveCertificateClick,
+                            navigator::onSavePassportClick,
                     )
                 }
                 composable(Screen.Reports.route) {
                     ExportsScreen(
-                        navigator.findReports().collectAsState(),
-                        navigator::viewExport,
-                        navigator::deleteReport
+                            navigator.findReports().collectAsState(),
+                            navigator::viewExport,
+                            navigator::deleteReport
                     )
                 }
                 composable(Screen.FilterScreen.route) {
                     FilterPassportsScreen(
-                        navigator::onFilterFromPassportsClick
+                            navigator::onFilterFromPassportsClick
                     )
                 }
                 composable(Screen.Settings.route) {
                     SettingsScreen(
-                        navigator::onClearPassportsClick,
-                        navigator::onUploadPassportsClick,
-                        navigator::onShowExportedClick
+                            navigator::onClearPassportsClick,
+                            navigator::onUploadPassportsClick,
+                            navigator::onShowExportedClick
                     )
                 }
                 composable(Screen.ExportScreen.route) {
                     SelectedPassportsOnExport(
-                        navigator.viewModel,
-                        navigator::onExportActExportClick,
+                            navigator.viewModel,
+                            navigator::onExportActExportClick,
                     ) { navigator.navController.navigate(Screen.SelectPassports.route) }
                 }
                 composable(Screen.SelectPassports.route) {
                     SelectPassportsScreen(
-                        navigator.viewModel.filteredPassportsCheckBox.collectAsState(),
-                        navigator::onSummaryExportClick
+                            navigator.viewModel.filteredPassportsCheckBox.collectAsState(),
+                            navigator::onSummaryExportClick
                     ) {
                         navigator.navigateTo(Screen.FilterForSelect)
                     }

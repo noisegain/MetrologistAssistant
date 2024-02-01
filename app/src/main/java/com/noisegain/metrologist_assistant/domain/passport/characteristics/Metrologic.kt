@@ -23,5 +23,6 @@ data class Metrologic(
     val nextDateAsString: String = daysFromEpochToString(nextDate)
     companion object {
         const val DISCARDED = -1L
+        const val NEXT_UNKNOWN = 13
     }
 }

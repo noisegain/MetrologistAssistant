@@ -58,7 +58,7 @@ fun SexyButton(
     content: @Composable (() -> Unit)? = null
 ) {
     Button(
-        onClick = onClick,
+        onClick = if (enabled) onClick else { {} },
         shape = Shapes.large,
         modifier = modifier
             .clip(Shapes.large)
